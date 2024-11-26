@@ -61,14 +61,14 @@
     }
 
     .resource-title {
-      font-size: 24px;
+      font-size: 1.5rem;
       font-weight: bold;
       color: #333;
       margin-bottom: 15px;
     }
 
     .resource-content {
-      font-size: 16px;
+      font-size: 1rem;
       color: #555;
       line-height: 1.6;
       margin-bottom: 20px;
@@ -79,7 +79,7 @@
     }
 
     .resource-links {
-      font-size: 16px;
+      font-size: 1rem;
       color: #007bff;
       text-decoration: underline;
       margin-top: 15px;
@@ -104,6 +104,28 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      #filters {
+        flex-direction: column;
+        align-items: center;
+      }
+      #search-box {
+        width: 90%;
+      }
+      .resource-card {
+        width: 100%;
+        margin: 10px auto;
+      }
+    }
+
+    @media (min-width: 768px) {
+      #resource-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+      }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -263,7 +285,7 @@
             <p style="font-style: italic; margin-top: 10px;">${resource.Topic || ''}${resource.Topic && resource['Resource Type'] ? ', ' : ''}${resource['Resource Type'] || ''}</p>
             <p style="font-style: italic;"><strong>Authors:</strong> ${resource.Authors || 'N/A'} (Last Updated: ${resource['Last Updated'] || 'N/A'})</p>
             <p style="font-style: italic;"><strong>Audience:</strong> ${resource.Audience || 'N/A'}${resource['Publicly Posted'] ? `, (${resource['Publicly Posted']})` : ''}</p>
-            <p style="font-style: italic; margin-top: 15px;"><strong>Links:</strong> <a href="${resource['Links HTML'] || ''}</p>
+            ${resource['Links HTML'] ? `<p style="font-style: italic; margin-top: 15px;"><strong>Links:</strong> <a href="${resource['Links HTML']} </p>` : ''}
           </div>
         </div>
       `;
