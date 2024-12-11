@@ -8,6 +8,12 @@
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
     }
 
     #search-box {
@@ -30,17 +36,59 @@
     #filters {
       display: flex;
       justify-content: center;
-      margin: 20px;
+      flex-wrap: wrap; /* Ensures wrapping on smaller screens */
+      gap: 10px; /* Adds spacing between dropdowns */
+      margin: 20px 0;
     }
 
-    #topic-filter, #type-filter {
-      margin: 0 10px;
+    #topic-filter, #type-filter, #links-filter {
+      flex: 1; /* Ensures equal width for all filters */
+      max-width: 200px; /* Restricts maximum width */
+      margin: 0;
       padding: 10px;
       border-radius: 5px;
       border: 1px solid #ddd;
+      background-color: #fff;
     }
 
-    /* Card Styling */
+    #topic-filter {
+      background-color: #E3F2FD; /* Light Blue */
+      color: #0D47A1; /* Dark Blue */
+      border: 1px solid #0D47A1;
+    }
+
+    #type-filter {
+      background-color: #E8F5E9; /* Light Green */
+      color: #1B5E20; /* Dark Green */
+      border: 1px solid #1B5E20;
+    }
+
+    #links-filter {
+      background-color: #FFEBEE; /* Light Red */
+      color: #B71C1C; /* Dark Red */
+      border: 1px solid #B71C1C;
+    }
+
+    select {
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .clear-filters {
+      flex: 0; /* Button doesn't take extra space */
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .clear-filters:hover {
+      background-color: #0056b3;
+    }
+
     .resource-card {
       border: 1px solid #ddd;
       padding: 20px;
@@ -64,25 +112,70 @@
       font-size: 1.5rem;
       font-weight: bold;
       color: #333;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
 
     .resource-content {
       font-size: 1rem;
       color: #555;
       line-height: 1.6;
-      margin-bottom: 20px;
-    }
-
-    .resource-content p {
-      margin: 5px 0;
+      margin-bottom: 10px;
     }
 
     .resource-links {
       font-size: 1rem;
       color: #007bff;
       text-decoration: underline;
-      margin-top: 15px;
+      margin-top: 10px;
+    }
+
+    .resource-tags {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .resource-tag {
+      background-color: #FFEBEE; /* Light Red */
+      color: #B71C1C; /* Dark Red */
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .resource-tag:hover {
+      background-color: #FFCDD2; /* Lighter Red for hover effect */
+    }
+
+    .view-all-button {
+      margin: 10px 0;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .view-all-button:hover {
+      background-color: #0056b3;
+    }
+
+
+    .resource-content {
+      font-size: 1rem;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .resource-links {
+      font-size: 1rem;
+      color: #007bff;
+      text-decoration: underline;
+      margin-top: 10px;
     }
 
     /* Feedback Section Styling */
@@ -111,9 +204,11 @@
         flex-direction: column;
         align-items: center;
       }
+
       #search-box {
         width: 90%;
       }
+
       .resource-card {
         width: 100%;
         margin: 10px auto;
@@ -123,7 +218,7 @@
     @media (min-width: 768px) {
       #resource-list {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
         gap: 20px;
       }
     }
@@ -131,17 +226,25 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
-  <h1 style="text-align: center;">LTI Resources</h1>
+  <h1>LTI Resources</h1>
 
-  <input type="search" id="search-box" placeholder="Search LTI Resources">
+  <input type="search" id="search-box" placeholder="Search resources...">
 
   <div id="filters">
     <select id="topic-filter">
       <option value="">Filter by Topic</option>
     </select>
     <select id="type-filter">
-      <option value="">Filter by Resource Type</option>
+      <option value="">Filter by Type</option>
     </select>
+    <select id="links-filter">
+      <option value="">Filter by Source</option>
+    </select>
+    <button class="clear-filters" id="clear-filters">Clear Filters</button>
+  </div>
+
+  <div id="view-all-resources-container" style="text-align: center; margin: 20px 0;">
+    <button id="view-all-resources" class="clear-filters">View All Resources</button>
   </div>
 
   <div id="resource-list"></div>
@@ -165,27 +268,14 @@
             header: true,
             skipEmptyLines: true,
             complete: function(results) {
-              // Filter out rows where the topic is blank
               allResources = results.data.filter(resource => resource.Topic && resource.Topic.trim() !== "");
               populateFilters(allResources);
               displayResources(allResources);
 
-              // Setup search functionality
-              const searchBox = document.getElementById('search-box');
-              searchBox.addEventListener('input', () => {
-                filterAndDisplayResources();
-              });
-
-              // Setup filter functionality
-              document.getElementById('topic-filter').addEventListener('change', () => {
-                updateTypeFilterOptions();
-                filterAndDisplayResources();
-              });
-
-              document.getElementById('type-filter').addEventListener('change', () => {
-                updateTopicFilterOptions();
-                filterAndDisplayResources();
-              });
+              document.getElementById('search-box').addEventListener('input', filterAndDisplayResources);
+              document.getElementById('topic-filter').addEventListener('change', filterAndDisplayResources);
+              document.getElementById('type-filter').addEventListener('change', filterAndDisplayResources);
+              document.getElementById('clear-filters').addEventListener('click', clearFilters);
             },
             error: function(error) {
               console.error('Error parsing CSV:', error);
@@ -198,11 +288,23 @@
     function populateFilters(resources) {
       const topicFilter = document.getElementById('topic-filter');
       const typeFilter = document.getElementById('type-filter');
+      const linksFilter = document.getElementById('links-filter');
 
-      // Get unique values for Topic and Resource Type, treating each comma-separated value as a separate tag
+      // Extract unique values for each filter
       const topics = [...new Set(resources.flatMap(resource => resource.Topic.split(',').map(tag => tag.trim())))];
       const types = [...new Set(resources.flatMap(resource => resource['Resource Type'].split(',').map(tag => tag.trim())))];
+      const links = [...new Set(resources.flatMap(resource => {
+        if (resource['Links HTML']) {
+          // Extract the display text from each link
+          return resource['Links HTML'].split(',').map(link => {
+            const textMatch = link.match(/>([^<]*)</); // Match text between `>` and `<`
+            return textMatch ? textMatch[1].trim() : 'Unknown Link'; // Default to 'Unknown Link' if no match
+          });
+        }
+        return [];
+      }))];
 
+      // Populate filters
       topics.forEach(topic => {
         const option = document.createElement('option');
         option.value = topic;
@@ -216,78 +318,160 @@
         option.textContent = type;
         typeFilter.appendChild(option);
       });
-    }
 
-    function updateTypeFilterOptions() {
-      const topicFilterValue = document.getElementById('topic-filter').value;
-      const typeFilter = document.getElementById('type-filter');
-      typeFilter.innerHTML = '<option value="">Filter by Resource Type</option>';
-
-      const filteredTypes = topicFilterValue ? [...new Set(allResources.filter(resource => resource.Topic.split(',').map(tag => tag.trim()).includes(topicFilterValue)).flatMap(resource => resource['Resource Type'].split(',').map(tag => tag.trim())))] : [...new Set(allResources.flatMap(resource => resource['Resource Type'].split(',').map(tag => tag.trim())))];
-
-      filteredTypes.forEach(type => {
+      links.forEach(linkText => {
         const option = document.createElement('option');
-        option.value = type;
-        option.textContent = type;
-        typeFilter.appendChild(option);
+        option.value = linkText; // Use the text as the filter value
+        option.textContent = linkText; // Display the link text
+        linksFilter.appendChild(option);
       });
     }
 
-    function updateTopicFilterOptions() {
-      const typeFilterValue = document.getElementById('type-filter').value;
-      const topicFilter = document.getElementById('topic-filter');
-      topicFilter.innerHTML = '<option value="">Filter by Topic</option>';
-
-      const filteredTopics = typeFilterValue ? [...new Set(allResources.filter(resource => resource['Resource Type'].split(',').map(tag => tag.trim()).includes(typeFilterValue)).flatMap(resource => resource.Topic.split(',').map(tag => tag.trim())))] : [...new Set(allResources.flatMap(resource => resource.Topic.split(',').map(tag => tag.trim())))];
-
-      filteredTopics.forEach(topic => {
-        const option = document.createElement('option');
-        option.value = topic;
-        option.textContent = topic;
-        topicFilter.appendChild(option);
-      });
+    function clearFilters() {
+      document.getElementById('topic-filter').value = '';
+      document.getElementById('type-filter').value = '';
+      document.getElementById('links-filter').value = '';
+      document.getElementById('search-box').value = '';
+      filterAndDisplayResources();
     }
 
     function filterAndDisplayResources() {
       const query = document.getElementById('search-box').value.toLowerCase();
-      const topicFilterValue = document.getElementById('topic-filter').value;
-      const typeFilterValue = document.getElementById('type-filter').value;
+      const topic = document.getElementById('topic-filter').value;
+      const type = document.getElementById('type-filter').value;
+      const linkText = document.getElementById('links-filter').value;
 
       const filteredResources = allResources.filter(resource => {
         const matchesSearch = Object.values(resource).some(value => value.toLowerCase().includes(query));
-        const matchesTopic = topicFilterValue ? resource.Topic.split(',').map(tag => tag.trim()).includes(topicFilterValue) : true;
-        const matchesType = typeFilterValue ? resource['Resource Type'].split(',').map(tag => tag.trim()).includes(typeFilterValue) : true;
-        return matchesSearch && matchesTopic && matchesType;
+        const matchesTopic = !topic || resource.Topic.split(',').map(tag => tag.trim()).includes(topic);
+        const matchesType = !type || (resource['Resource Type'] && resource['Resource Type'].split(',').map(tag => tag.trim()).includes(type));
+        const matchesLink = !linkText || (resource['Links HTML'] && resource['Links HTML'].includes(`>${linkText}<`));
+
+        return matchesSearch && matchesTopic && matchesType && matchesLink;
       });
 
       displayResources(filteredResources);
-
-      // Show feedback section when typing starts
-      const feedbackSection = document.getElementById('feedback-section');
-      if (query) {
-        feedbackSection.style.display = 'block';
-      } else {
-        feedbackSection.style.display = 'none';
-      }
     }
 
     function displayResources(resources) {
       const resourceList = document.getElementById('resource-list');
-      resourceList.innerHTML = resources.map(resource => createCard(resource)).join('');
+      resourceList.innerHTML = resources.map(resource => {
+        // Clean up and parse the 'Links HTML' field
+        let linksHtml = '';
+        let linkIconHtml = '';
+        if (resource['Links HTML']) {
+          const links = resource['Links HTML'].split(',').map(link => link.trim());
+          if (links.length === 1) {
+            // If there is only one link, display it as an icon
+            const urlMatch = links[0].match(/href="([^"]*)"/);
+            const url = urlMatch ? urlMatch[1] : '#';
+            linkIconHtml = `<a href="${url}" target="_blank" rel="noopener noreferrer" style="font-size: 0.9rem; margin-left: 10px;">🔗</a>`;
+          } else {
+            // If there are multiple links, display them in the Links card
+            linksHtml = links
+              .map(link => {
+                const urlMatch = link.match(/href="([^"]*)"/);
+                const textMatch = link.match(/>([^<]*)</);
+
+                const url = urlMatch ? urlMatch[1] : '#';
+                const text = textMatch ? textMatch[1] : 'View Resource';
+
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="resource-links">${text}</a>`;
+              })
+              .join('<br>');
+          }
+        }
+
+        return `
+          <div class="resource-card">
+            <div class="resource-title">
+              ${resource.Name || 'Untitled Resource'}
+              ${linkIconHtml}
+            </div>
+            <div class="resource-content">${resource.Description || 'No description available.'}</div>
+            <div class="resource-tags">
+              ${resource.Topic.split(',').map(tag => `<span class="resource-tag" onclick="filterByTag('${tag.trim()}', 'topic')">${tag.trim()}</span>`).join('')}
+              ${resource['Resource Type'].split(',').map(tag => `<span class="resource-tag" onclick="filterByTag('${tag.trim()}', 'type')">${tag.trim()}</span>`).join('')}
+            </div>
+          </div>
+          ${linksHtml ? `
+          <div class="resource-card">
+            <div class="resource-title">Links</div>
+            <div class="resource-content">
+              ${linksHtml}
+            </div>
+          </div>
+          ` : ''}
+        `;
+      }).join('');
     }
 
-    function createCard(resource) {
-      return `
-        <div class="resource-card">
-          <div class="resource-title">${resource.Name || 'Untitled Resource'}</div>
-          <div class="resource-content">
-            <p>${resource['Description HTML'] || resource.Description || 'N/A'}</p>
-            <p style="font-style: italic; margin-top: 10px;">${resource.Topic || ''}${resource.Topic && resource['Resource Type'] ? ', ' : ''}${resource['Resource Type'] || ''}</p>
-            <p style="font-style: italic;"><strong>Authors:</strong> ${resource.Authors || 'N/A'} (Last Updated: ${resource['Last Updated'] || 'N/A'})</p>
-            <p style="font-style: italic;"><strong>Audience:</strong> ${resource.Audience || 'N/A'}${resource['Publicly Posted'] ? `, (${resource['Publicly Posted']})` : ''}</p>
-            ${resource['Links HTML'] ? `<p style="font-style: italic; margin-top: 15px;"><strong>Links:</strong> <a href="${resource['Links HTML']}" target="_blank" rel="noopener noreferrer">${resource['Links HTML']}</a></p>` : ''}
+    // Function to filter resources by tag
+    function filterByTag(tag, filterType) {
+      const filter = document.getElementById(`${filterType}-filter`);
+      filter.value = tag;
+      filterAndDisplayResources();
+    }
+
+    // Group resources by topic for the "View All Resources" feature
+    function groupResourcesByTopic(resources) {
+      return resources.reduce((acc, resource) => {
+        const topics = resource.Topic.split(',').map(tag => tag.trim());
+        topics.forEach(topic => {
+          if (!acc[topic]) acc[topic] = [];
+          acc[topic].push(resource);
+        });
+        return acc;
+      }, {});
+    }
+
+    // Display grouped resources with "View All" functionality
+    function displayGroupedResources(groupedResources) {
+      const resourceList = document.getElementById('resource-list');
+      resourceList.innerHTML = Object.entries(groupedResources).map(([topic, resources]) => {
+        const firstFive = resources.slice(0, 5);
+        return `
+          <div class="topic-group">
+            <h2>${topic}</h2>
+            ${firstFive.map(resource => `
+              <div class="resource-card">
+                <div class="resource-title">${resource.Name || 'Untitled Resource'}</div>
+                <div class="resource-content">${resource.Description || 'No description available.'}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>${resource['Links HTML']}</div>
+                  <div class="resource-tags">
+                    ${resource.Topic.split(',').map(tag => `<span class="resource-tag" onclick="filterByTag('${tag.trim()}', 'topic')">${tag.trim()}</span>`).join('')}
+                    ${resource['Resource Type'].split(',').map(tag => `<span class="resource-tag" onclick="filterByTag('${tag.trim()}', 'type')">${tag.trim()}</span>`).join('')}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+            ${resources.length > 5 ? `<button class="view-all-button" onclick="viewAllResources('${topic}')">View All "${topic}" Resources</button>` : ''}
           </div>
-        </div>
+        `;
+      }).join('');
+    }
+
+    // "View All Resources" handler
+    function viewAllResources(topic) {
+      const resourcesForTopic = allResources.filter(resource => resource.Topic.split(',').map(tag => tag.trim()).includes(topic));
+      const resourceList = document.getElementById('resource-list');
+      resourceList.innerHTML = `
+        <h2>All Resources for "${topic}"</h2>
+        ${resourcesForTopic.map(resource => `
+          <div class="resource-card">
+            <div class="resource-title">${resource.Name || 'Untitled Resource'}</div>
+            <div class="resource-content">${resource.Description || 'No description available.'}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>${resource['Links HTML']}</div>
+              <div class="resource-tags">
+                ${resource.Topic.split(',').map(tag => `<span class="resource-tag" onclick="filterByTag('${tag.trim()}', 'topic')">${tag.trim()}</span>`).join('')}
+                ${resource['Resource Type'].split(',').map(tag => `<span class="resource-tag" onclick="filterByTag('${tag.trim()}', 'type')">${tag.trim()}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        `).join('')}
+        <button class="view-all-button" onclick="displayGroupedResources(groupResourcesByTopic(allResources))">Back to All Topics</button>
       `;
     }
 
