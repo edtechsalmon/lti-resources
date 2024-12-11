@@ -285,7 +285,7 @@
             <p style="font-style: italic; margin-top: 10px;">${resource.Topic || ''}${resource.Topic && resource['Resource Type'] ? ', ' : ''}${resource['Resource Type'] || ''}</p>
             <p style="font-style: italic;"><strong>Authors:</strong> ${resource.Authors || 'N/A'} (Last Updated: ${resource['Last Updated'] || 'N/A'})</p>
             <p style="font-style: italic;"><strong>Audience:</strong> ${resource.Audience || 'N/A'}${resource['Publicly Posted'] ? `, (${resource['Publicly Posted']})` : ''}</p>
-            ${resource['Links HTML'] ? `<p style="font-style: italic; margin-top: 15px;"><strong>Links:</strong> <a href="${resource['Links HTML']} </p>` : ''}
+            ${resource['Links HTML'] ? `<p style="font-style: italic; margin-top: 15px;"><strong>Links:</strong> <a href="${resource['Links HTML']}" target="_blank" rel="noopener noreferrer">${resource['Links HTML']}</a></p>` : ''}
           </div>
         </div>
       `;
